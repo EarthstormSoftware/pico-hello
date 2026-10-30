@@ -1,0 +1,14 @@
+# Device-local config (use config.example.json as the template)
+config.json
+
+# Build output (mpy-cross)
+build/
+
+# Python
+.venv*/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Editor stubs (installed with pip --target typings, see README; not committed)
+typings/
