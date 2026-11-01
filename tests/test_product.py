@@ -1,31 +1,28 @@
 """Pico Hello's own part, with App Base's real settings (saved in a temporary folder), topics and discovery."""
 import json
 import os
+import types
 
 import pytest
 
 import product
 from base import discovery, mqtt, pico
-from base.settings import Settings, merge
+from base.device import Device
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-class Device:
-    def __init__(self, path):
-        self.settings = Settings(str(path / 'config.json'), merge(product.SETTINGS))
-        self.states = 0
-
-    def applied(self, changed):
-        product.applied(self, changed)
-
-    def state_changed(self):
-        self.states += 1
-
-
 @pytest.fixture
 def device(tmp_path):
-    return Device(tmp_path)
+    platform = types.SimpleNamespace(state_path=lambda name: str(tmp_path / name), device_name=lambda: 'hello',
+                                     NAME_EDITABLE=True, health=lambda: {}, SENSORS=())
+    d = Device(product, platform)
+    d.states = 0
+
+    def state_changed():
+        d.states += 1
+    d.state_changed = state_changed
+    return d
 
 
 def test_the_greeting_starts_as_the_default(device):
@@ -50,8 +47,8 @@ def test_a_wrong_command_is_refused_and_changes_nothing(device, command):
 def test_home_assistant_gets_a_text_box_on_the_set_topic():
     t = mqtt.topics('hello', sensors=pico.SENSORS, product_state=True, entities=product.HA_ENTITIES)
     config = json.loads(discovery.entity('hello', t, product, 'greeting', product.ha_entity(None, 'greeting', t)))
-    assert config['command_topic'] == '/home/device/hello/set'
-    assert config['state_topic'] == '/home/device/hello/state'
+    assert config['command_topic'] == 'home/device/hello/set'
+    assert config['state_topic'] == 'home/device/hello/state'
     assert config['max'] == product.GREETING_LONGEST
     assert config['device']['sw_version'] == product.VERSION
 

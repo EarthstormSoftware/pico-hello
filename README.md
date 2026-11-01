@@ -70,7 +70,9 @@ which apply updates and roll them back, only go over USB.
    from the board's id), and replace the greeting with the product's own settings and hooks. App Base's
    `base/device.py` lists them all; for a light, see PlasmaStick Controller.
 3. Start `src/version.py` at its first version, and put the product's settings in `config.example.json`.
-4. In `src/www/index.html`, replace the Hello tab with the product's own; the Device, Network and MQTT tabs can stay.
+4. In `src/www/index.html`, replace the Hello tab with the product's own. The Device, Network and MQTT tabs are App
+   Base's (`data-base-pane`): the product's own Device settings go in that pane as `<div class="group">` sections, and
+   its own words in the `<template data-slot>` elements.
 5. Rename `PICOHELLO_WEB_PASSWORD` in `scripts/`, change the tests in `tests/` to match, and the README.
 
 Keep an eye on memory: the smallest Pico has about 190 KB of heap, and App Base with a small product leaves plenty,
@@ -85,7 +87,7 @@ but each module and buffer counts. `/api/info` shows `mem_free`.
 | `src/product.py`, `src/version.py` | What's this product's own: its name, settings and hooks (here `info`, `state`, `set`, `applied`, `HA_ENTITIES` and `ha_entity`), and its version |
 | `src/base/` | A copy of App Base, which the tests check is unchanged: a fix goes into App Base, then `..\app-base\update-base.ps1 -Product src` copies it in (`-Tag vX.Y.Z` for a release of App Base). The deploy leaves out what's only for a Pi. |
 | `src/lib/mqtt_as/` | The MQTT client, [mqtt_as](https://github.com/peterhinch/micropython-mqtt) |
-| `src/www/index.html` | Its page, using App Base's `/base.css` and `/base.js` |
+| `src/www/index.html` | Its page, using App Base's `/base.css` and `/base.js`, which also makes the Device, Network and MQTT tabs |
 | `config.example.json` | The settings a first deploy puts on the board (a local `config.json`, gitignored, wins) |
 
 ## The page
@@ -107,7 +109,7 @@ password set every request needs it (HTTP Basic, any username).
 
 ## MQTT
 
-Under the topic base (`/home/device/{name}` unless changed):
+Under the topic base (`home/device/{name}` unless changed):
 
 | Topic | Is |
 |---|---|
